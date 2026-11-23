@@ -1,0 +1,53 @@
+# ---------------------------------------------------------
+# Secrets — never commit these.
+# The Supabase service role key bypasses row level security
+# entirely. Anyone who gets it owns the database.
+# ---------------------------------------------------------
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+.supabase/
+supabase/.temp/
+supabase/.branches/
+
+# ---------------------------------------------------------
+# Node / Next.js
+# ---------------------------------------------------------
+node_modules/
+.next/
+out/
+build/
+dist/
+.turbo/
+*.tsbuildinfo
+.vercel/
+coverage/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ---------------------------------------------------------
+# Office lock files — Word leaves these behind while a
+# document is open.
+# ---------------------------------------------------------
+~$*
+*.tmp
+
+# ---------------------------------------------------------
+# Operating system
+# ---------------------------------------------------------
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+.DS_Store
+
+# ---------------------------------------------------------
+# Editors
+# ---------------------------------------------------------
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.swp
