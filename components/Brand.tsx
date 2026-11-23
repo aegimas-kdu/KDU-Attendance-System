@@ -11,7 +11,7 @@ export function Brand({ href = "/" }: { href?: string }) {
   return (
     <Link href={href} className="flex items-center gap-3 text-white no-underline">
       <Image
-        src="/logo.jpg"
+        src="/logo.png"
         alt="Kyungdong University Global"
         width={40}
         height={44}

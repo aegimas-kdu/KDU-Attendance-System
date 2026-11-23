@@ -34,7 +34,7 @@ const calendar = [
 export default function WelcomePage() {
   return (
     <div className="flex min-h-full flex-col bg-white">
-      <header className="flex min-h-16 flex-wrap items-center gap-6 bg-navy px-6 shadow-[inset_0_-3px_0_var(--color-brand)]">
+      <header className="flex min-h-16 flex-wrap items-center gap-x-6 gap-y-3 bg-navy px-4 py-3 shadow-[inset_0_-3px_0_var(--color-brand)] sm:px-6 sm:py-0">
         <Brand />
         <nav className="flex flex-wrap gap-1 text-sm">
           <a href="#news" className="rounded-lg px-3 py-2 text-brand-100 no-underline hover:bg-white/10 hover:text-white">
@@ -62,13 +62,13 @@ export default function WelcomePage() {
         </Link>
       </header>
 
-      <section className="bg-[linear-gradient(168deg,#0a66c2_0%,#0754a5_52%,#04356b_100%)] px-12 py-16 text-white">
-        <div className="mx-auto flex max-w-5xl flex-wrap items-center gap-12">
+      <section className="bg-[linear-gradient(168deg,#0a66c2_0%,#0754a5_52%,#04356b_100%)] px-6 py-12 text-white sm:px-12 sm:py-16">
+        <div className="mx-auto flex max-w-5xl flex-wrap items-center gap-10 lg:gap-12">
           <div className="min-w-0 flex-[999_1_420px]">
             <p className="mb-2 text-xs font-semibold uppercase tracking-[0.09em] text-brand-200">
               Kyungdong University Global
             </p>
-            <h1 className="mb-4 max-w-[17ch] text-[40px] font-bold leading-[1.14] tracking-tight">
+            <h1 className="mb-4 max-w-[17ch] text-[28px] font-bold leading-[1.18] tracking-tight sm:text-[34px] lg:text-[40px] lg:leading-[1.14]">
               Your classes, attendance and materials in one place
             </h1>
             <p className="mb-7 max-w-[54ch] text-base leading-relaxed text-brand-100">
@@ -93,17 +93,17 @@ export default function WelcomePage() {
           </div>
           <div className="grid flex-[1_1_300px] place-items-center">
             <Image
-              src="/logo.jpg"
+              src="/logo.png"
               alt=""
               width={220}
               height={242}
-              className="h-[220px] w-auto drop-shadow-2xl"
+              className="h-[150px] w-auto drop-shadow-2xl sm:h-[220px]"
             />
           </div>
         </div>
       </section>
 
-      <section className="border-b border-line bg-white px-12 py-5">
+      <section className="border-b border-line bg-white px-6 py-5 sm:px-12">
         <dl className="mx-auto grid max-w-5xl grid-cols-[repeat(auto-fit,minmax(180px,1fr))] gap-5">
           {[
             ["Current term", "Fall 2026", "1 September – 31 December"],
@@ -122,7 +122,7 @@ export default function WelcomePage() {
         </dl>
       </section>
 
-      <main className="mx-auto w-full max-w-5xl flex-1 px-12 py-10">
+      <main className="mx-auto w-full max-w-5xl flex-1 px-6 py-10 sm:px-12">
         <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1.9fr)_minmax(0,1fr)]">
           <div id="news" className="rounded-card border border-line bg-white shadow-sm">
             <div className="border-b border-line px-5 py-4">
@@ -175,9 +175,9 @@ export default function WelcomePage() {
         </div>
       </main>
 
-      <footer className="bg-navy px-12 py-6 text-brand-200">
+      <footer className="bg-navy px-6 py-6 text-brand-200 sm:px-12">
         <div className="mx-auto flex max-w-5xl flex-wrap items-center gap-5 text-[13px]">
-          <Image src="/logo.jpg" alt="" width={34} height={37} className="h-8 w-auto" />
+          <Image src="/logo.png" alt="" width={34} height={37} className="h-8 w-auto" />
           <span>Kyungdong University Global</span>
           <span className="flex-1" />
           <a href="#" className="text-brand-100 no-underline hover:text-white">Privacy</a>
