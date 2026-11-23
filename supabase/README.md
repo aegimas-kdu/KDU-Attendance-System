@@ -55,13 +55,69 @@ From then on, use `grant_admin_access()` and `revoke_admin_access()`.
 
 ## Creating a professor
 
-An administrator invites the person through Supabase Auth, then calls:
+First the person needs a Supabase Auth account — **Authentication → Users →
+Add user**, with *Auto Confirm User* ticked. The sign-up trigger gives them a
+profile and, because self-registration always produces a student, a `students`
+row as well.
+
+### From the application
+
+Once an administrator is signed in, the app calls:
 
 ```sql
 select public.register_professor(
-    '<profile uuid>', 'EMP-1042', 'Computer Science'
+    (select id from public.profiles where email = 'sarwar@kdu.edu'),
+    'EMP-SARWAR',
+    'Smart Computing'
 );
 ```
+
+Looking the profile up by email avoids copying UUIDs by hand.
+
+### From the SQL editor
+
+`register_professor()` **will not work in the SQL editor.** It begins with
+`IF NOT public.is_admin()`, and `is_admin()` reads `auth.uid()`, which is null
+there — so it refuses every time, even for a super admin. That is correct
+behaviour: the function is written for a signed-in administrator.
+
+To set professors up before any application exists, do the three steps by
+hand. Direct database access is exempt from the privilege guard, which is why
+this works and only here:
+
+```sql
+-- 1. drop the student rows the sign-up trigger created
+delete from public.students
+where profile_id in (
+    select id from public.profiles
+    where email in ('sarwar@kdu.edu', 'hussein@kdu.edu')
+);
+
+-- 2. change the role
+update public.profiles
+set role = 'professor', admin_level = NULL, updated_at = NOW()
+where email in ('sarwar@kdu.edu', 'hussein@kdu.edu');
+
+-- 3. create the professor records
+insert into public.professors (profile_id, employee_id, department)
+select p.id, v.employee_id, 'Smart Computing'
+from (values
+    ('sarwar@kdu.edu',  'EMP-SARWAR'),
+    ('hussein@kdu.edu', 'EMP-HUSSEIN')
+) as v(email, employee_id)
+join public.profiles p on p.email = v.email
+on conflict (profile_id) do update
+set employee_id = excluded.employee_id,
+    department  = excluded.department;
+```
+
+The employee IDs matter: the timetable script at the foot of `seed.sql` joins
+on them. It expects `EMP-SARWAR`, `EMP-HUSSEIN`, `EMP-VILLA`, `EMP-ABSI` and
+`EMP-YOON`.
+
+The same applies to `grant_admin_access()` and `revoke_admin_access()` — both
+check `is_super_admin()` and so are unusable from the SQL editor. That is why
+the first super admin is made with a plain `update`.
 
 ## Functions the application calls
 
