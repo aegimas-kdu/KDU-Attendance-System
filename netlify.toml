@@ -1,0 +1,12 @@
+# Netlify build settings for the KDU Global Attendance System.
+#
+# The two NEXT_PUBLIC_SUPABASE_* variables are NOT here on purpose: they
+# belong in Site configuration → Environment variables, because .env.local is
+# git-ignored and real keys must never be committed.
+
+[build]
+  command = "npm run build"
+  publish = ".next"
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
