@@ -42,6 +42,50 @@ export async function registerProfessor(input: {
   return ok();
 }
 
+/**
+ * The same thing, found by email.
+ *
+ * What the interface actually uses — an administrator knows the person's
+ * address, not their profile UUID.
+ */
+export async function registerProfessorByEmail(input: {
+  email: string;
+  employeeId: string;
+  department?: string | null;
+}): Promise<ActionResult<{ name: string }>> {
+  await requireAdmin();
+  const supabase = await createClient();
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("id, full_name, role")
+    .eq("email", input.email.trim().toLowerCase())
+    .maybeSingle();
+
+  if (!profile) {
+    return fail(
+      "No account with that email. Create it first under Authentication → Users in Supabase.",
+    );
+  }
+  if (profile.role === "professor") {
+    return fail(`${profile.full_name} is already a professor.`);
+  }
+  if (profile.role === "admin") {
+    return fail(
+      `${profile.full_name} is an administrator. Remove that access first if they should teach instead.`,
+    );
+  }
+
+  const result = await registerProfessor({
+    profileId: profile.id,
+    employeeId: input.employeeId,
+    department: input.department,
+  });
+
+  if (!result.ok) return result;
+  return ok({ name: profile.full_name });
+}
+
 /** Super admin only — the database refuses anyone else. */
 export async function grantAdminAccess(
   profileId: string,
@@ -111,6 +155,7 @@ export async function updateStudentRecord(input: {
   studentNumber?: string;
   intakeBatchId?: string | null;
   academicLevelId?: string | null;
+  departmentId?: string | null;
 }): Promise<ActionResult> {
   await requireAdmin();
   const supabase = await createClient();
@@ -120,6 +165,8 @@ export async function updateStudentRecord(input: {
   if (input.intakeBatchId !== undefined) studentPatch.intake_batch_id = input.intakeBatchId;
   if (input.academicLevelId !== undefined)
     studentPatch.academic_level_id = input.academicLevelId;
+  if (input.departmentId !== undefined)
+    studentPatch.department_id = input.departmentId;
 
   if (Object.keys(studentPatch).length) {
     const { error } = await supabase
@@ -313,6 +360,24 @@ export async function createIntakeBatch(input: {
     name: input.name.trim(),
     semester: input.semester,
     start_year: input.startYear,
+  });
+
+  if (error) return fail(describe(error));
+
+  revalidatePath("/admin/academic");
+  return ok();
+}
+
+export async function createAcademicLevel(input: {
+  name: string;
+  sequenceNumber: number;
+}): Promise<ActionResult> {
+  await requireAdmin();
+  const supabase = await createClient();
+
+  const { error } = await supabase.from("academic_levels").insert({
+    name: input.name.trim(),
+    sequence_number: input.sequenceNumber,
   });
 
   if (error) return fail(describe(error));

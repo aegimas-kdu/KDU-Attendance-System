@@ -209,3 +209,28 @@ export async function countFailedAttempts(sessionId: string): Promise<number> {
     .eq("succeeded", false);
   return new Set((data ?? []).map((a) => a.student_id)).size;
 }
+
+/**
+ * This student's own marks for a set of classes.
+ *
+ * One query for a whole day or week, rather than one per class. The policy on
+ * `attendance_records` already narrows it to the caller, so no student id is
+ * passed in.
+ */
+export async function myMarks(
+  sessionIds: string[],
+): Promise<Map<string, { status: AttendanceStatus; marked_at: string | null }>> {
+  const marks = new Map<string, { status: AttendanceStatus; marked_at: string | null }>();
+  if (!sessionIds.length) return marks;
+
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("attendance_records")
+    .select("session_id, status, marked_at")
+    .in("session_id", sessionIds);
+
+  for (const row of data ?? []) {
+    marks.set(row.session_id, { status: row.status, marked_at: row.marked_at });
+  }
+  return marks;
+}

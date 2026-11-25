@@ -3,7 +3,12 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { requireViewer } from "@/lib/auth";
-import { MATERIALS_BUCKET, removeObject, materialUrl } from "@/lib/storage";
+import {
+  MATERIALS_BUCKET,
+  materialPath,
+  materialUrl,
+  removeObject,
+} from "@/lib/storage";
 import { describe, fail, ok, type ActionResult } from "./result";
 
 /**
@@ -123,4 +128,28 @@ export async function getMaterialDownloadUrl(
   if (!url) return fail("The download link could not be created.");
 
   return ok({ url });
+}
+
+/**
+ * Where the browser should put a file it is about to upload.
+ *
+ * The Storage policies read the FIRST FOLDER of the object path to decide who
+ * may write it, so the path is built on the server by `materialPath` rather
+ * than guessed in the browser — a hand-made path would either be denied or,
+ * worse, land where someone else's policy allows it.
+ */
+export async function prepareMaterialUpload(
+  offeringId: string,
+  filename: string,
+): Promise<ActionResult<{ path: string; bucket: string }>> {
+  await requireViewer();
+
+  const supabase = await createClient();
+  const { data: allowed } = await supabase.rpc("teaches_offering", {
+    p_offering_id: offeringId,
+  });
+
+  if (!allowed) return fail("You do not teach this course.");
+
+  return ok({ path: materialPath(offeringId, filename), bucket: MATERIALS_BUCKET });
 }

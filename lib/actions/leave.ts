@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { requireStudent, requireViewer } from "@/lib/auth";
+import { LEAVE_BUCKET, leaveDocumentPath } from "@/lib/storage";
 import { describe, fail, ok, type ActionResult } from "./result";
 
 /**
@@ -99,4 +100,21 @@ export async function decideLeaveRequests(
 
   revalidatePath("/teach/leave");
   return ok({ decided: requestIds.length });
+}
+
+/**
+ * Where the browser should put a supporting document.
+ *
+ * The Storage policy on the leave bucket reads the FIRST FOLDER of the path
+ * and compares it with the caller's own profile id, so the path is built on
+ * the server by `leaveDocumentPath` rather than guessed in the browser.
+ */
+export async function prepareLeaveDocumentUpload(
+  filename: string,
+): Promise<ActionResult<{ path: string; bucket: string }>> {
+  const viewer = await requireStudent();
+  return ok({
+    path: leaveDocumentPath(viewer.userId, filename),
+    bucket: LEAVE_BUCKET,
+  });
 }

@@ -21,12 +21,23 @@ the next file after the previous one has succeeded.
 | `migrations/0008_materials_leave.sql` | materials, leave_requests, Storage buckets and policies |
 | `migrations/0009_audit_and_admin.sql` | audit_logs, audit triggers, professor and administrator provisioning |
 | `migrations/0010_cross_role_access.sql` | cross-role profile visibility, class lists, sign-in by student number, attendance sheet view |
+| `migrations/0011_grants.sql` | table privileges for `anon` and `authenticated`, and three DELETE policies |
+| `migrations/0012_revoke_unsafe.sql` | removes TRUNCATE, REFERENCES and TRIGGER from the API roles |
 | `seed.sql` | intake batches 2025-1 to 2026-2, levels, Fall 2026 term, the six real courses, the Sophomore Section and course eligibility |
 | `verify.sql` | read-only checks: tables, RLS, policies, functions, triggers, views, buckets |
 
 Run `verify.sql` last. Every query in it states the result to expect, so a
 wrong number tells you which file to look at. Its output also works as the
 testing appendix for the report.
+
+### Why 0011 exists
+
+Row Level Security decides *which rows* a request may touch. It does not grant
+the right to touch the table at all — that is an ordinary SQL privilege. Miss
+it and every API call fails with `42501: permission denied for table …` before
+any policy is consulted. The two layers are separate and both are required:
+the **grant** lets a role use the table, the **policy** decides what it sees
+inside. Granting broadly is safe here precisely because RLS is on everywhere.
 
 The Fall 2026 timetable is **not** in `seed.sql`, because a timetable slot
 needs a professor and a professor needs a real Auth account. The script for it

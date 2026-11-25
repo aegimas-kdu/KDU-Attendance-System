@@ -6,6 +6,7 @@ import type {
   AcademicLevel,
   AcademicTerm,
   ClassSection,
+  Department,
   IntakeBatch,
 } from "@/lib/database.types";
 
@@ -131,3 +132,19 @@ export async function countUnassignedStudents(termId: string): Promise<number> {
     (s) => s.intake_batch_id && s.academic_level_id && !assignedIds.has(s.id),
   ).length;
 }
+
+/**
+ * The university's departments.
+ *
+ * Readable by a signed-out visitor, because the registration
+ * form needs them before anyone has an account.
+ */
+export const listDepartments = cache(
+  async (activeOnly = false): Promise<Department[]> => {
+    const supabase = await createClient();
+    let query = supabase.from("departments").select("*");
+    if (activeOnly) query = query.eq("is_active", true);
+    const { data } = await query.order("name");
+    return data ?? [];
+  },
+);

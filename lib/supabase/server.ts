@@ -5,8 +5,8 @@ import type { Database } from "@/lib/database.types";
 /**
  * Supabase client for server components, route handlers and server actions.
  *
- * Still the anon key, still subject to Row Level Security — it simply reads
- * the signed-in user from the request cookies instead of from the browser.
+ * Still the publishable key, still subject to Row Level Security — it simply
+ * reads the signed-in user from the request cookies instead of the browser.
  *
  * Must be created per request. Never hoist it into a module-level constant,
  * or one user's session leaks into another's request.
@@ -16,7 +16,7 @@ export async function createClient() {
 
   return createServerClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
     {
       cookies: {
         getAll() {

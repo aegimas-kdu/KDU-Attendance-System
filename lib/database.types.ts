@@ -64,13 +64,24 @@ export type Student = {
   student_id: string;
   intake_batch_id: string | null;
   academic_level_id: string | null;
+  department_id: string | null;
 };
 
 export type Professor = {
   id: string;
   profile_id: string;
   employee_id: string;
+  /** Free text, kept from before departments were a table. */
   department: string | null;
+  department_id: string | null;
+};
+
+export type Department = {
+  id: string;
+  code: string;
+  name: string;
+  is_active: boolean;
+  created_at: string;
 };
 
 export type IntakeBatch = {
@@ -299,6 +310,10 @@ export type Database = {
         Professor,
         Pick<Professor, "profile_id" | "employee_id"> & Partial<Professor>
       >;
+      departments: T<
+        Department,
+        Pick<Department, "code" | "name"> & Partial<Department>
+      >;
       intake_batches: T<
         IntakeBatch,
         Pick<IntakeBatch, "name" | "semester" | "start_year"> & Partial<IntakeBatch>
@@ -417,6 +432,7 @@ export type Database = {
       };
       revoke_admin_access: { Args: { p_profile_id: string }; Returns: undefined };
       email_for_student_id: { Args: { p_student_id: string }; Returns: string | null };
+      student_number_taken: { Args: { p_student_id: string }; Returns: boolean };
     };
     Enums: Record<string, never>;
     CompositeTypes: Record<string, never>;

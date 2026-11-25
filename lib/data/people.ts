@@ -90,10 +90,11 @@ export async function getStudent(studentId: string) {
   const { data } = await supabase
     .from("students")
     .select(
-      `id, student_id, intake_batch_id, academic_level_id,
+      `id, student_id, intake_batch_id, academic_level_id, department_id,
        profiles ( id, full_name, email, country, role, admin_level, account_status, created_at ),
        intake_batches ( id, name ),
        academic_levels ( id, name ),
+       departments ( id, code, name ),
        student_section_assignments ( id, assigned_at, status, class_sections ( id, section_name, academic_terms ( name ) ) )`,
     )
     .eq("id", studentId)
