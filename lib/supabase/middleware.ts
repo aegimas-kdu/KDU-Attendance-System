@@ -2,8 +2,23 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { supabasePublishableKey, supabaseUrl } from "@/lib/supabase/env";
 
-/** Pages anyone may see without signing in. */
-const PUBLIC_PATHS = ["/", "/sign-in", "/register", "/auth"];
+/**
+ * Pages anyone may see without signing in.
+ *
+ * /reset-password is here even though it only does anything for someone
+ * holding a recovery session. Bouncing an expired link to the sign-in page
+ * would leave the person with no idea what went wrong; the page itself says
+ * the link has expired and offers a new one. It is not a way in: changing a
+ * password still needs the session that /auth/confirm establishes.
+ */
+const PUBLIC_PATHS = [
+  "/",
+  "/sign-in",
+  "/register",
+  "/auth",
+  "/forgot-password",
+  "/reset-password",
+];
 
 function isPublic(pathname: string) {
   return PUBLIC_PATHS.some(
@@ -43,11 +58,15 @@ export async function updateSession(request: NextRequest) {
     },
   );
 
-  // getUser() revalidates the token with Supabase. Do not replace it with
-  // getSession(), which trusts whatever the cookie claims.
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // getClaims() verifies the token's signature rather than believing the
+  // cookie, so it is as trustworthy as getUser() here — but with asymmetric
+  // JWT signing keys it verifies locally against a cached JWKS instead of
+  // making an HTTP call to the Auth server on every request.
+  //
+  // Do NOT replace this with getSession(), which performs no verification at
+  // all and would accept a forged cookie.
+  const { data: claims } = await supabase.auth.getClaims();
+  const user = claims?.claims?.sub ? claims.claims : null;
 
   const { pathname } = request.nextUrl;
 

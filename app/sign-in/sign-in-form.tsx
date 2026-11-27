@@ -118,12 +118,17 @@ export function SignInForm() {
           </div>
 
           <div className="mb-4">
-            <label
-              htmlFor="password"
-              className="mb-1.5 block text-[13px] font-medium text-ink-2"
-            >
-              Password
-            </label>
+            <div className="mb-1.5 flex flex-wrap items-baseline justify-between gap-x-3">
+              <label
+                htmlFor="password"
+                className="text-[13px] font-medium text-ink-2"
+              >
+                Password
+              </label>
+              <Link href="/forgot-password" className="text-[13px]">
+                Forgotten your password?
+              </Link>
+            </div>
             <input
               id="password"
               type="password"

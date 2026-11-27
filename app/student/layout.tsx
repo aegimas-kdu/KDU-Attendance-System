@@ -24,6 +24,12 @@ export default async function StudentLayout({ children }: { children: ReactNode 
       heading: "Requests",
       items: [{ href: "/student/leave", label: "Leave requests", icon: icons.leave }],
     },
+    {
+      heading: "Account",
+      items: [
+        { href: "/student/profile", label: "My profile", icon: icons.people },
+      ],
+    },
   ];
 
   return (

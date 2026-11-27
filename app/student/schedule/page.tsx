@@ -11,7 +11,7 @@ import {
   Td,
   Th,
 } from "@/components/ui";
-import { myMarks } from "@/lib/data/attendance";
+import { myMarksBetween } from "@/lib/data/attendance";
 import { PERIODS, hhmm, listClassesBetween, today, weekBounds } from "@/lib/data/schedule";
 
 export const metadata: Metadata = { title: "My week" };
@@ -50,10 +50,10 @@ export default async function StudentWeekPage({
   base.setDate(base.getDate() + offset * 7);
   const week = weekBounds(base);
 
-  const classes = await listClassesBetween(week.from, week.to);
-  const marks = await myMarks(
-    classes.map((c) => c.session_id).filter((id): id is string => Boolean(id)),
-  );
+  const [classes, marks] = await Promise.all([
+    listClassesBetween(week.from, week.to),
+    myMarksBetween(week.from, week.to),
+  ]);
 
   const dates = new Map<number, string>();
   for (const c of classes) {

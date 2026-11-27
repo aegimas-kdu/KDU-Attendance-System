@@ -29,13 +29,22 @@ export type Viewer = {
  * would be met with empty tables rather than somebody else's records.
  */
 
-/** The signed-in user, or null. Cached for the lifetime of one request. */
+/**
+ * The signed-in user's id and email, or null. Cached for one request.
+ *
+ * Uses getClaims(), not getUser(). Both are safe — getClaims verifies the
+ * token's signature cryptographically, unlike getSession(), which believes
+ * whatever the cookie says. The difference is cost: with asymmetric JWT
+ * signing keys getClaims verifies locally against a cached JWKS, so it costs
+ * nothing, while getUser is an HTTP call to the Auth server on every single
+ * render. That call was being made twice per page load.
+ */
 export const getUser = cache(async () => {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  return user;
+  const { data } = await supabase.auth.getClaims();
+  const claims = data?.claims;
+  if (!claims?.sub) return null;
+  return { id: claims.sub as string, email: (claims.email as string) ?? null };
 });
 
 /** The full picture of who is asking, or null when signed out. */
@@ -45,15 +54,28 @@ export const getViewer = cache(async (): Promise<Viewer | null> => {
 
   const supabase = await createClient();
 
-  const [{ data: profile }, { data: student }, { data: professor }] =
-    await Promise.all([
-      supabase.from("profiles").select("*").eq("id", user.id).single(),
-      supabase.from("students").select("id").eq("profile_id", user.id).maybeSingle(),
-      supabase.from("professors").select("id").eq("profile_id", user.id).maybeSingle(),
-    ]);
+  // One request, not three. students.profile_id and professors.profile_id are
+  // both UNIQUE, so PostgREST embeds a single row rather than a list — but a
+  // regenerated types file could describe it either way, so both are handled.
+  const { data: row } = await supabase
+    .from("profiles")
+    .select("*, students(id), professors(id)")
+    .eq("id", user.id)
+    .single();
 
   // Signed in but no profile means the sign-up trigger did not run.
-  if (!profile) return null;
+  if (!row) return null;
+
+  const { students, professors, ...profile } = row as typeof row & {
+    students: { id: string } | { id: string }[] | null;
+    professors: { id: string } | { id: string }[] | null;
+  };
+
+  const one = <T,>(v: T | T[] | null): T | null =>
+    Array.isArray(v) ? (v[0] ?? null) : v;
+
+  const student = one(students);
+  const professor = one(professors);
 
   return {
     userId: user.id,

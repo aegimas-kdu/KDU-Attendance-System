@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import Link from "next/link";
 import { Brand } from "@/components/Brand";
 import { Avatar } from "@/components/ui";
 import { signOut } from "@/lib/actions/auth";
@@ -25,21 +26,44 @@ export function TopBar({
       <Brand href={home} />
       {children}
       <span className="flex-1" />
-      <span className="flex items-center gap-2.5 rounded-full bg-white/10 py-1 pl-1 pr-3">
-        <span className="grid h-8 w-8 place-items-center rounded-full bg-brand text-xs font-bold text-white">
-          {(viewer.profile.full_name ?? "?")
-            .trim()
-            .split(/\s+/)
-            .map((p) => p[0] ?? "")
-            .slice(0, 2)
-            .join("")
-            .toUpperCase()}
-        </span>
-        <span className="text-[13px] font-semibold leading-tight text-white">
-          {viewer.profile.full_name}
-          <span className="block text-[11.5px] font-normal text-brand-200">{label}</span>
-        </span>
-      </span>
+      {(() => {
+        const initials = (viewer.profile.full_name ?? "?")
+          .trim()
+          .split(/\s+/)
+          .map((p) => p[0] ?? "")
+          .slice(0, 2)
+          .join("")
+          .toUpperCase();
+
+        const inside = (
+          <>
+            <span className="grid h-8 w-8 place-items-center rounded-full bg-brand text-xs font-bold text-white">
+              {initials}
+            </span>
+            <span className="text-[13px] font-semibold leading-tight text-white">
+              {viewer.profile.full_name}
+              <span className="block text-[11.5px] font-normal text-brand-200">
+                {label}
+              </span>
+            </span>
+          </>
+        );
+
+        // Only students have a profile page so far. Everyone else keeps the
+        // plain badge rather than a link that goes nowhere.
+        return viewer.isStudent ? (
+          <Link
+            href="/student/profile"
+            className="flex items-center gap-2.5 rounded-full bg-white/10 py-1 pl-1 pr-3 no-underline hover:bg-white/20"
+          >
+            {inside}
+          </Link>
+        ) : (
+          <span className="flex items-center gap-2.5 rounded-full bg-white/10 py-1 pl-1 pr-3">
+            {inside}
+          </span>
+        );
+      })()}
       <form action={signOut}>
         <button
           type="submit"

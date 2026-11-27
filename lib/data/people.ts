@@ -146,3 +146,26 @@ export async function countStudentsWithoutBatch(): Promise<number> {
     .is("intake_batch_id", null);
   return count ?? 0;
 }
+
+/**
+ * The signed-in student's own record.
+ *
+ * getStudent() takes an id because an administrator looks up anybody. Here
+ * there is no id to pass: the policy on students already restricts the rows
+ * to this student's own, so selecting without a filter returns exactly one.
+ */
+export async function getMyStudentRecord() {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("students")
+    .select(
+      `id, student_id, intake_batch_id, academic_level_id, department_id,
+       profiles ( id, full_name, email, country, role, account_status, created_at ),
+       intake_batches ( id, name, semester, start_year ),
+       academic_levels ( id, name ),
+       departments ( id, code, name ),
+       student_section_assignments ( id, status, class_sections ( section_name, academic_terms ( name ) ) )`,
+    )
+    .maybeSingle();
+  return data;
+}

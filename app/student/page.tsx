@@ -15,7 +15,7 @@ import {
   Tile,
 } from "@/components/ui";
 import { requireStudent } from "@/lib/auth";
-import { getStudentAttendance, myMarks } from "@/lib/data/attendance";
+import { getStudentAttendance, myMarksBetween } from "@/lib/data/attendance";
 import { listLeaveRequests } from "@/lib/data/leave";
 import { listRecentMaterials } from "@/lib/data/materials";
 import {
@@ -34,17 +34,14 @@ export default async function StudentTodayPage() {
   const date = today();
   const week = weekBounds();
 
-  const [classes, thisWeek, courses, leave, files] = await Promise.all([
+  const [classes, thisWeek, courses, leave, files, marks] = await Promise.all([
     listClassesOn(date),
     listClassesBetween(week.from, week.to),
     getStudentAttendance(viewer.studentId),
     listLeaveRequests(),
     listRecentMaterials(4),
+    myMarksBetween(date, date),
   ]);
-
-  const marks = await myMarks(
-    classes.map((c) => c.session_id).filter((id): id is string => Boolean(id)),
-  );
 
   const open = classes.filter((c) => c.status === "open");
   const needsCode = open.filter(

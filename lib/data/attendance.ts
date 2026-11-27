@@ -234,3 +234,33 @@ export async function myMarks(
   }
   return marks;
 }
+
+/**
+ * This student's own marks across a date range.
+ *
+ * myMarks() needs the session ids, so it cannot start until the schedule
+ * query has come back — a round trip of its own, in sequence, on two of the
+ * busiest pages. Filtering on the session's date instead makes it independent,
+ * so it joins the parallel batch and costs nothing extra.
+ *
+ * Row Level Security still scopes the rows to this student; the date range
+ * only decides how many of their own marks come back.
+ */
+export async function myMarksBetween(
+  from: string,
+  to: string,
+): Promise<Map<string, { status: AttendanceStatus; marked_at: string | null }>> {
+  const marks = new Map<string, { status: AttendanceStatus; marked_at: string | null }>();
+
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("attendance_records")
+    .select("session_id, status, marked_at, class_sessions!inner(session_date)")
+    .gte("class_sessions.session_date", from)
+    .lte("class_sessions.session_date", to);
+
+  for (const row of data ?? []) {
+    marks.set(row.session_id, { status: row.status, marked_at: row.marked_at });
+  }
+  return marks;
+}
